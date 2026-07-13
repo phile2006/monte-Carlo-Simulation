@@ -1,0 +1,88 @@
+import java.io.IOException;
+import java.io.PrintWriter;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.util.HashMap;
+import java.util.Map;
+
+/**
+ * Monte Carlo stock price simulator.
+ */
+
+public final class MonteCarloSim {
+
+    public static void main(String[] args) {
+        Map<String, String> opts = parseArgs(args);
+
+        double s0     = getD(opts, "s0", 100.0);
+        double mu     = getD(opts, "mu", 0.08);
+        double sigma  = getD(opts, "sigma", 0.20);
+        int    days   = (int) getD(opts, "days", 252);
+        int    paths  = (int) getD(opts, "paths", 100_000);
+        long   seed   = (long) getD(opts, "seed", 42);
+        String modelName = opts.getOrDefault("model", "gbm");
+
+        PriceModel model = switch (modelName) {
+            case "gbm"  -> new GbmModel(mu, sigma);
+            case "jump" -> new JumpDiffusionModel(mu, sigma,
+                    getD(opts, "lambda", 4.0),
+                    getD(opts, "jump-mean", -0.03),
+                    getD(opts, "jump-std", 0.05));
+            default -> throw new IllegalArgumentException(
+                    "Unknown model '" + modelName + "' (use gbm or jump)");
+        };
+
+        Simulator sim = new Simulator(model, seed);
+        long t0 = System.nanoTime();
+        Simulator.PathResult[] results = sim.run(s0, days, paths);
+        double elapsedMs = (System.nanoTime() - t0) / 1e6;
+
+        double[] terminal  = new double[paths];
+        double[] returns   = new double[paths];   // simple return over the horizon
+        double[] drawdowns = new double[paths];
+
+        for (int i = 0; i < paths; i++) {
+            terminal[i]  = results[i].terminalPrice();
+            returns[i]   = terminal[i] / s0 - 1.0;
+            drawdowns[i] = results[i].maxDrawdown();
+        }
+        Stats priceStats = new Stats(terminal);
+        Stats retStats   = new Stats(returns);
+        Stats ddStats    = new Stats(drawdowns);
+
+        double years = days / (double) PriceModel.TRADING_DAYS;
+
+        System.out.println("=".repeat(64));
+        System.out.println("Monte Carlo Stock Simulator");
+        System.out.println("=".repeat(64));
+        System.out.printf ("Model     : %s%n", model.describe());
+        System.out.printf ("Start     : %.2f   Horizon: %d trading days (%.2f yr)%n", s0, days, years);
+        System.out.printf ("Paths     : %,d   Seed: %d   Runtime: %.0f ms%n", paths, seed, elapsedMs);
+        System.out.println();
+
+        System.out.println("Terminal price distribution");
+        System.out.printf ("  mean %.2f   median %.2f   stdev %.2f%n",
+                priceStats.mean(), priceStats.median(), priceStats.std());
+        System.out.printf ("  p5 %.2f   p25 %.2f   p75 %.2f   p95 %.2f%n",
+                priceStats.percentile(5), priceStats.percentile(25),
+                priceStats.percentile(75), priceStats.percentile(95));
+        System.out.printf ("  min %.2f   max %.2f%n", priceStats.min(), priceStats.max());
+        System.out.println();
+
+        System.out.println("Horizon return");
+        System.out.printf ("  mean %+.2f%%   median %+.2f%%   P(loss) %.1f%%%n",
+                retStats.mean() * 100, retStats.median() * 100,
+                retStats.probBelow(0.0) * 100);
+        System.out.printf ("  VaR 95%% %+.2f%%   VaR 99%% %+.2f%%   (return at percentile)%n",
+                retStats.percentile(5) * 100, retStats.percentile(1) * 100);
+        System.out.printf ("  CVaR 95%% %+.2f%%   CVaR 99%% %+.2f%%   (mean of tail)%n",
+                retStats.tailMean(5) * 100, retStats.tailMean(1) * 100);
+        if (opts.containsKey("target")) {
+            double target = Double.parseDouble(opts.get("target"));
+            System.out.printf("  P(terminal >= %.2f) = %.1f%%%n",
+                    target, (1.0 - priceStats.probBelow(target)) * 100);
+        }
+        System.out.println();
+        
+    }
+}
