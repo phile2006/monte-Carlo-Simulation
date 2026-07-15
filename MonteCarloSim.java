@@ -83,6 +83,25 @@ public final class MonteCarloSim {
                     target, (1.0 - priceStats.probBelow(target)) * 100);
         }
         System.out.println();
-        
+
+        System.out.println("Max drawdown along path");
+        System.out.printf ("  median %.1f%%   p75 %.1f%%   p95 %.1f%%   worst %.1f%%%n",
+                ddStats.median() * 100, ddStats.percentile(75) * 100,
+                ddStats.percentile(95) * 100, ddStats.max() * 100);
+        System.out.println();
+
+        System.out.println("Terminal price histogram (0.5–99.5 pct range)");
+        System.out.print(priceStats.histogram(20, 44));
+
+        if (opts.containsKey("export")) {
+            exportPaths(sim, s0, days, opts.get("export"));
+        }
+    }
+
+
+    
+    private static double getD(Map<String, String> opts, String key, double def) {
+        String v = opts.get(key);
+        return v == null ? def : Double.parseDouble(v);
     }
 }
