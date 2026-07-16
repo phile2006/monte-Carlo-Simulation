@@ -7,6 +7,22 @@ import java.util.Map;
 
 /**
  * Monte Carlo stock price simulator.
+ * Usage:
+ *   java MonteCarloSim.java [options]
+ *
+ * Options (all have defaults):
+ *   --s0 <price>        starting price                       (default 100)
+ *   --mu <drift>        annualized drift, decimal            (default 0.08)
+ *   --sigma <vol>       annualized volatility, decimal       (default 0.20)
+ *   --days <n>          horizon in trading days              (default 252)
+ *   --paths <n>         number of simulated paths            (default 100000)
+ *   --seed <n>          RNG seed for reproducibility         (default 42)
+ *   --model <name>      gbm | jump                           (default gbm)
+ *   --lambda <n>        [jump] jumps per year                (default 4)
+ *   --jump-mean <x>     [jump] mean log-jump size            (default -0.03)
+ *   --jump-std <x>      [jump] stdev of log-jump size        (default 0.05)
+ *   --target <price>    also report P(terminal >= target)
+ *   --export <file>     write 20 sample paths as CSV
  */
 
 public final class MonteCarloSim {
