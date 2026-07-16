@@ -98,7 +98,39 @@ public final class MonteCarloSim {
         }
     }
 
+    
+    private static void exportPaths(Simulator sim, double s0, int days, String file) {
+        int n = 20;
+        double[][] sample = sim.samplePaths(s0, days, n);
+        try (PrintWriter out = new PrintWriter(Files.newBufferedWriter(Path.of(file)))) {
+            StringBuilder header = new StringBuilder("day");
+            for (int p = 0; p < n; p++) header.append(",path").append(p + 1);
+            out.println(header);
+            for (int d = 0; d <= days; d++) {
+                StringBuilder row = new StringBuilder(String.valueOf(d));
+                for (int p = 0; p < n; p++) row.append(',').append(String.format("%.4f", sample[p][d]));
+                out.println(row);
+            }
+            System.out.printf("%nExported %d sample paths to %s%n", n, file);
+        } catch (IOException e) {
+            System.err.println("Export failed: " + e.getMessage());
+        }
+    }
 
+    private static Map<String, String> parseArgs(String[] args) {
+        Map<String, String> opts = new HashMap<>();
+        for (int i = 0; i < args.length; i++) {
+            if (!args[i].startsWith("--")) {
+                throw new IllegalArgumentException("Unexpected argument: " + args[i]);
+            }
+            String key = args[i].substring(2);
+            if (i + 1 >= args.length || args[i + 1].startsWith("--")) {
+                throw new IllegalArgumentException("Missing value for --" + key);
+            }
+            opts.put(key, args[++i]);
+        }
+        return opts;
+    }
     
     private static double getD(Map<String, String> opts, String key, double def) {
         String v = opts.get(key);
