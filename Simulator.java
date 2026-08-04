@@ -53,3 +53,25 @@ public final class Simulator {
         });
         return results;
     }
+
+    
+    /**
+     * Simulate a handful of full paths 
+     */
+    public double[][] samplePaths(double s0, int days, int numPaths) {
+        var factory = RandomGeneratorFactory.<RandomGenerator.SplittableGenerator>of("L64X128MixRandom");
+        RandomGenerator.SplittableGenerator root = factory.create(seed);
+        double dt = 1.0 / PriceModel.TRADING_DAYS;
+        double[][] paths = new double[numPaths][days + 1];
+        for (int p = 0; p < numPaths; p++) {
+            RandomGenerator rng = root.split();
+            paths[p][0] = s0;
+            double logPrice = Math.log(s0);
+            for (int d = 1; d <= days; d++) {
+                logPrice += model.sampleLogReturn(rng, dt);
+                paths[p][d] = Math.exp(logPrice);
+            }
+        }
+        return paths;
+    }
+}
