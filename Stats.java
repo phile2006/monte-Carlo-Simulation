@@ -60,7 +60,7 @@ public final class Stats {
         if (binW <= 0) return "(degenerate distribution)\n";
         int[] counts = new int[bins];
         for (double v : sorted) {
-            int b = (int) ((v - lo) / binW);
+            int b = (int) Math.floor((v - lo) / binW);
             if (b >= 0 && b < bins) counts[b]++;
         }
         int maxCount = Arrays.stream(counts).max().orElse(1);
