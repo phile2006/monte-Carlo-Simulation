@@ -54,9 +54,9 @@ public final class Simulator {
         return results;
     }
 
-    
     /**
-     * Simulate a handful of full paths 
+     * Simulate a handful of full paths (price at every step) for plotting/export.
+     * Uses the same seed derivation as {@link #run}, so path i here matches path i there.
      */
     public double[][] samplePaths(double s0, int days, int numPaths) {
         var factory = RandomGeneratorFactory.<RandomGenerator.SplittableGenerator>of("L64X128MixRandom");

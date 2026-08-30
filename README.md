@@ -6,7 +6,6 @@ VaR/CVaR, path drawdowns, and an ASCII histogram.
 
 Requires Java 22+ (uses the multi-file source launcher — no build step).
 
-
 ## Run
 
 ```sh

@@ -7,6 +7,7 @@ import java.util.Map;
 
 /**
  * Monte Carlo stock price simulator.
+ *
  * Usage:
  *   java MonteCarloSim.java [options]
  *
@@ -24,7 +25,6 @@ import java.util.Map;
  *   --target <price>    also report P(terminal >= target)
  *   --export <file>     write 20 sample paths as CSV
  */
-
 public final class MonteCarloSim {
 
     public static void main(String[] args) {
@@ -56,7 +56,6 @@ public final class MonteCarloSim {
         double[] terminal  = new double[paths];
         double[] returns   = new double[paths];   // simple return over the horizon
         double[] drawdowns = new double[paths];
-
         for (int i = 0; i < paths; i++) {
             terminal[i]  = results[i].terminalPrice();
             returns[i]   = terminal[i] / s0 - 1.0;
@@ -114,7 +113,6 @@ public final class MonteCarloSim {
         }
     }
 
-    
     private static void exportPaths(Simulator sim, double s0, int days, String file) {
         int n = 20;
         double[][] sample = sim.samplePaths(s0, days, n);
@@ -147,7 +145,7 @@ public final class MonteCarloSim {
         }
         return opts;
     }
-    
+
     private static double getD(Map<String, String> opts, String key, double def) {
         String v = opts.get(key);
         return v == null ? def : Double.parseDouble(v);
