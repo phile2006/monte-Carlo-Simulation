@@ -9,7 +9,7 @@ Requires Java 22+ (uses the multi-file source launcher — no build step).
 ## Run
 
 ```sh
-cd monteCarloSimulation
+cd monte-Carlo-Simulation
 java MonteCarloSim.java                          # defaults: GBM, S0=100, mu=8%, sigma=20%, 1yr, 100k paths
 java MonteCarloSim.java --sigma 0.35 --days 63   # 3-month horizon, 35% vol
 java MonteCarloSim.java --model jump --lambda 6 --jump-mean -0.04
